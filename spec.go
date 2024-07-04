@@ -1,6 +1,8 @@
 package cron
 
-import "time"
+import (
+	"time"
+)
 
 // SpecSchedule specifies a duty cycle (to the second granularity), based on a
 // traditional crontab specification. It is computed initially and stored as bit sets.
@@ -22,7 +24,7 @@ var (
 	seconds = bounds{0, 59, nil}
 	minutes = bounds{0, 59, nil}
 	hours   = bounds{0, 23, nil}
-	dom     = bounds{1, 31, nil}
+	dom     = bounds{1, 32, map[string]uint{"l":32}}
 	months  = bounds{1, 12, map[string]uint{
 		"jan": 1,
 		"feb": 2,
@@ -174,13 +176,31 @@ WRAP:
 	return t.In(origLocation)
 }
 
+func lastDayOfMonth(year int, month time.Month) time.Time {
+    // 下一个月的第一天
+    nextMonth := time.Date(year, month+1, 1, 0, 0, 0, 0, time.UTC)
+    // 下一个月的第一天减去一天即为当前月的最后一天
+    lastDay := nextMonth.AddDate(0, 0, -1)
+    return lastDay
+}
+
 // dayMatches returns true if the schedule's day-of-week and day-of-month
 // restrictions are satisfied by the given time.
 func dayMatches(s *SpecSchedule, t time.Time) bool {
 	var (
-		domMatch bool = 1<<uint(t.Day())&s.Dom > 0
+		// 100 10000000000000000000000000000
+		domLastDayMatch bool = 1<<uint(32) &s.Dom >0
+		domMatch bool = 1<<uint(t.Day())&s.Dom > 0 
 		dowMatch bool = 1<<uint(t.Weekday())&s.Dow > 0
 	)
+	if domLastDayMatch{
+		lastDay := lastDayOfMonth(t.Year(),t.Month())
+		if (1<<uint(t.Day())) & (1<< uint(lastDay.Day())) >0{
+			return true
+		}else{
+			return false
+		}
+	}
 	if s.Dom&starBit > 0 || s.Dow&starBit > 0 {
 		return domMatch && dowMatch
 	}
