@@ -186,22 +186,22 @@ func lastDayOfMonth(year int, month time.Month) time.Time {
 
 // dayMatches returns true if the schedule's day-of-week and day-of-month
 // restrictions are satisfied by the given time.
+// if they set 32 in day of month it's mean they set last day of month ,so I figure out last day of month dynamically
+// use temporary value to compare
 func dayMatches(s *SpecSchedule, t time.Time) bool {
-	var (
-		// 100 10000000000000000000000000000
-		domLastDayMatch bool = 1<<uint(32) &s.Dom >0
-		domMatch bool = 1<<uint(t.Day())&s.Dom > 0 
-		dowMatch bool = 1<<uint(t.Weekday())&s.Dow > 0
-	)
+	var domLastDayMatch bool = 1<<uint(32) &s.Dom >0
+	var domMatch bool
+	var dowMatch bool = 1<<uint(t.Weekday())&s.Dow > 0
+	var tempDom uint64
 	if domLastDayMatch{
 		lastDay := lastDayOfMonth(t.Year(),t.Month())
-		if (1<<uint(t.Day())) & (1<< uint(lastDay.Day())) >0{
-			return true
-		}else{
-			return false
-		}
+		tempDom = s.Dom | (1<< uint(lastDay.Day()))
+		domMatch = 1<<uint(t.Day())&tempDom > 0 
+	}else{
+		tempDom = s.Dom
+		domMatch = 1<<uint(t.Day())&tempDom > 0 
 	}
-	if s.Dom&starBit > 0 || s.Dow&starBit > 0 {
+	if tempDom&starBit > 0 || s.Dow&starBit > 0 {
 		return domMatch && dowMatch
 	}
 	return domMatch || dowMatch
