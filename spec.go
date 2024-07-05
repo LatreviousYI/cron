@@ -177,12 +177,12 @@ WRAP:
 }
 
 func lastDayOfMonth(year int, month time.Month) time.Time {
-    // 下一个月的第一天
+    // get first day of next month
     nextMonth := time.Date(year, month+1, 1, 0, 0, 0, 0, time.UTC)
-    // 下一个月的第一天减去一天即为当前月的最后一天
     lastDay := nextMonth.AddDate(0, 0, -1)
     return lastDay
 }
+
 
 // dayMatches returns true if the schedule's day-of-week and day-of-month
 // restrictions are satisfied by the given time.
